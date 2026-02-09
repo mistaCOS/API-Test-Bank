@@ -1,5 +1,4 @@
 import pytest
-
 from src.main.api.models.create_deposit_request import CreateDepositRequest
 from src.main.api.models.create_transfer_request import CreateTransferRequest
 from src.main.api.models.create_user_request import CreateUserRequest

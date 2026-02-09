@@ -32,12 +32,9 @@ class TestCreateUser:
         ]
     )
     def test_create_user_invalid(self, username, password):
-
-
         create_user_request = CreateUserRequest(username=username, password=password, role="ROLE_USER")
 
         CreateUserRequester(
             request_spec=RequestSpecs.auth_headers(username="admin", password="123456"),
             response_spec=ResponseSpecs.code_400()
         ).post(create_user_request)
-

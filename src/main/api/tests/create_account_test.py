@@ -22,5 +22,4 @@ class TestCreateAccount:
             response_spec=ResponseSpecs.code_201()
         ).post()
 
-
         assert response.balance == 0

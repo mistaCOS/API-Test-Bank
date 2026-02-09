@@ -1,100 +1,72 @@
-import requests
 import pytest
+from src.main.api.models.create_credit_request import CreateCreditRequest
+from src.main.api.models.create_user_request import CreateUserRequest
+from src.main.api.models.credit_repay_request import CreditRepayRequest
+from src.main.api.requests.create_account_requester import CreateAccountRequester
+from src.main.api.requests.create_credit_requester import CreateCreditRequester
+from src.main.api.requests.create_user_requester import CreateUserRequester
+from src.main.api.requests.credit_repay_requester import CreditRepayRequester
+from src.main.api.specs.request_specs import RequestSpecs
+from src.main.api.specs.response_specs import ResponseSpecs
+
 
 @pytest.mark.api
 class TestUserCreditRepay:
     def test_user_credit_repay(self):
-        login_admin_response = requests.post(
-            url='http://localhost:4111/api/auth/token/login',
-            json={
-                "username": "admin",
-                "password": "123456"
-            },
-            headers={
-                "Content-Type": "application/json",
-                "accept": "application/json"
-            }
-        )
+        create_user_request = CreateUserRequest(username="Max88", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
 
-        assert login_admin_response.status_code == 200
-        token = login_admin_response.json()["token"]
+        CreateUserRequester(
+            request_spec=RequestSpecs.auth_headers(username="admin", password="123456"),
+            response_spec=ResponseSpecs.code_200()
+        ).post(create_user_request)
 
-        create_user_response = requests.post(
-            url='http://localhost:4111/api/admin/create',
-            json={
-                "username": "Max8",
-                "password": "Pas!sw0rd",
-                "role": "ROLE_CREDIT_SECRET"
-            },
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f'Bearer {token}'
-            }
-        )
+        response = CreateAccountRequester(
+            request_spec=RequestSpecs.auth_headers(username="Max88", password="Pas!sw0rd"),
+            response_spec=ResponseSpecs.code_201()
+        ).post()
 
-        assert create_user_response.status_code == 200
-        assert create_user_response.json()["username"] == "Max8"
-        assert create_user_response.json()["role"] == "ROLE_CREDIT_SECRET"
+        create_credit_request = CreateCreditRequest(accountId=response.id, amount=5000, termMonths=12)
 
-        login_user_response = requests.post(
-            url='http://localhost:4111/api/auth/token/login',
-            json={
-                "username": "Max8",
-                "password": "Pas!sw0rd"
-            },
-            headers={
-                "Content-Type": "application/json",
-                "accept": "application/json"
-            }
-        )
+        response = CreateCreditRequester(
+            request_spec=RequestSpecs.auth_headers(username="Max88", password="Pas!sw0rd"),
+            response_spec=ResponseSpecs.code_201()
+        ).post(create_credit_request)
 
-        assert login_user_response.status_code == 200
-        token = login_user_response.json()["token"]
+        credit_repay_request = CreditRepayRequest(creditId=response.creditId, accountId=response.id,
+                                                  amount=response.balance)
 
-        create_account_response = requests.post(
-            url='http://localhost:4111/api/account/create',
-            headers={
-                "Content-Type": "application/json",
-                'Authorization': f'Bearer {token}'
-            }
-        )
+        response = CreditRepayRequester(
+            request_spec=RequestSpecs.auth_headers(username="Max88", password="Pas!sw0rd"),
+            response_spec=ResponseSpecs.code_200()
+        ).post(credit_repay_request)
 
-        assert create_account_response.status_code == 201
-        account_id = create_account_response.json()["id"]
+        assert credit_repay_request.creditId == response.creditId
+        assert credit_repay_request.amount == response.amountDeposited
 
-        credit_request_response = requests.post(
-            url='http://localhost:4111/api/credit/request',
-            json={
-                "accountId": account_id,
-                "amount": 5000,
-                "termMonths": 12
-            },
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f'Bearer {token}',
-                "accept": "application/json"
-            }
-        )
+    def test_user_credit_repay_wrong_amount(self):
+        create_user_request = CreateUserRequest(username="Max88", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
 
-        assert credit_request_response.status_code == 201
-        assert credit_request_response.json()["amount"] == 5000
-        assert credit_request_response.json()["termMonths"] == 12
-        credit_id = credit_request_response.json()["creditId"]
+        CreateUserRequester(
+            request_spec=RequestSpecs.auth_headers(username="admin", password="123456"),
+            response_spec=ResponseSpecs.code_200()
+        ).post(create_user_request)
 
-        credit_repay_response = requests.post(
-            url='http://localhost:4111/api/credit/repay',
-            json={
-                "creditId": credit_id,
-                "accountId": account_id,
-                "amount": 5000
-            },
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f'Bearer {token}',
-                "Accept": "application/json"
-            }
-        )
+        response = CreateAccountRequester(
+            request_spec=RequestSpecs.auth_headers(username="Max88", password="Pas!sw0rd"),
+            response_spec=ResponseSpecs.code_201()
+        ).post()
 
-        assert credit_repay_response.status_code == 200
-        assert credit_repay_response.json()["creditId"] == credit_id
-        assert credit_repay_response.json()["amountDeposited"] == 5000
+        create_credit_request = CreateCreditRequest(accountId=response.id, amount=5000, termMonths=12)
+
+        response = CreateCreditRequester(
+            request_spec=RequestSpecs.auth_headers(username="Max88", password="Pas!sw0rd"),
+            response_spec=ResponseSpecs.code_201()
+        ).post(create_credit_request)
+
+        credit_repay_request = CreditRepayRequest(creditId=response.creditId, accountId=response.id,
+                                                  amount=100)
+
+        CreditRepayRequester(
+            request_spec=RequestSpecs.auth_headers(username="Max88", password="Pas!sw0rd"),
+            response_spec=ResponseSpecs.code_422()
+        ).post(credit_repay_request)

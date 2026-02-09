@@ -26,3 +26,9 @@ class ResponseSpecs:
         def confirm(response: Response):
             return response.status_code == HTTPStatus.NOT_FOUND, response.text
         return confirm
+
+    @staticmethod
+    def code_422():
+        def confirm(response: Response):
+            return response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY, response.text
+        return confirm
