@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from requests import Response
 from src.main.api.models.create_deposit_request import CreateDepositRequest
 from src.main.api.models.create_deposit_response import CreateDepositResponse
