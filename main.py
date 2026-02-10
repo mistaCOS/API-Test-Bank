@@ -1,16 +1,16 @@
-# This is a sample Python script.
+"""
+Точка входа в приложение Test_Bank.
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+Скрипт по умолчанию выводит приветствие. Основная логика проекта —
+API-тесты банковского бэкенда (см. src/main/api/tests/).
+Запуск тестов: pytest (см. pytest.ini).
+"""
 
 
 def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    """Выводит приветствие с переданным именем."""
+    print(f'Hi, {name}')
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

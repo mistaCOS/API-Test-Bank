@@ -1,3 +1,10 @@
+"""
+API-тесты создания пользователя (POST /admin/create).
+
+Проверяется успешное создание с валидными данными и ожидаемая ошибка 400
+при невалидных логине/пароле (кириллица, короткий логин, неверный формат пароля и т.д.).
+"""
+
 import pytest
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.requests.create_user_requester import CreateUserRequester
@@ -7,7 +14,10 @@ from src.main.api.specs.response_specs import ResponseSpecs
 
 @pytest.mark.api
 class TestCreateUser:
+    """Тесты эндпоинта создания пользователя администратором."""
+
     def test_create_user_valid(self):
+        """Валидные username/password/role — пользователь создаётся, в ответе совпадают username и role."""
         create_user_request = CreateUserRequest(username="Max1", password="Pas!sw0rd", role="ROLE_USER")
 
         response = CreateUserRequester(
@@ -32,6 +42,7 @@ class TestCreateUser:
         ]
     )
     def test_create_user_invalid(self, username, password):
+        """Разные невалидные пары логин/пароль — API должен вернуть 400."""
         create_user_request = CreateUserRequest(username=username, password=password, role="ROLE_USER")
 
         CreateUserRequester(

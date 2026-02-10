@@ -1,3 +1,10 @@
+"""
+API-тесты перевода между счетами (POST /account/transfer).
+
+Проверяется успешный перевод (баланс счёта отправителя уменьшается на сумму перевода)
+и ошибка 404 при переводе на несуществующий счёт.
+"""
+
 import pytest
 from src.main.api.models.create_deposit_request import CreateDepositRequest
 from src.main.api.models.create_transfer_request import CreateTransferRequest
@@ -12,7 +19,10 @@ from src.main.api.specs.response_specs import ResponseSpecs
 
 @pytest.mark.api
 class TestUserTransfer:
+    """Тесты эндпоинта перевода между счетами."""
+
     def test_user_transfer(self):
+        """Два счёта у одного пользователя: пополняем первый на 4000, переводим 2000 на второй — баланс отправителя уменьшается на 2000."""
         create_user_request = CreateUserRequest(username="Max55", password="Pas!sw0rd", role="ROLE_USER")
 
         CreateUserRequester(
@@ -56,6 +66,7 @@ class TestUserTransfer:
         assert response.fromAccountIdBalance == balance - create_transfer_request.amount
 
     def test_user_transfer_invalid_account(self):
+        """Перевод на несуществующий toAccountId (1000) — ожидается 404."""
         create_user_request = CreateUserRequest(username="Max55", password="Pas!sw0rd", role="ROLE_USER")
 
         CreateUserRequester(

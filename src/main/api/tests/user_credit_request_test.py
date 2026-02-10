@@ -1,3 +1,10 @@
+"""
+API-тесты оформления кредита (POST /credit/request).
+
+Проверяется успешная выдача кредита (совпадение accountId, amount, termMonths в ответе)
+и ошибка 400 при сумме 0.
+"""
+
 import pytest
 from src.main.api.models.create_credit_request import CreateCreditRequest
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -10,7 +17,10 @@ from src.main.api.specs.response_specs import ResponseSpecs
 
 @pytest.mark.api
 class TestUserCreditRequest:
+    """Тесты эндпоинта оформления кредита."""
+
     def test_user_credit_request(self):
+        """Пользователь ROLE_CREDIT_SECRET создаёт счёт и оформляет кредит 5000 на 12 месяцев — в ответе совпадают accountId, amount, termMonths."""
         create_user_request = CreateUserRequest(username="Max77", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
 
         CreateUserRequester(
@@ -37,6 +47,7 @@ class TestUserCreditRequest:
         assert create_credit_request.termMonths == response.termMonths
 
     def test_user_credit_request_with_empty_amount(self):
+        """Запрос кредита с amount=0 — ожидается 400."""
         create_user_request = CreateUserRequest(username="Max77", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
 
         CreateUserRequester(

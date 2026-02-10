@@ -1,3 +1,10 @@
+"""
+API-тесты создания счёта (account).
+
+Сценарий: под админом создаётся пользователь, затем под этим пользователем создаётся счёт.
+Проверяется, что баланс нового счёта равен 0.
+"""
+
 import pytest
 from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.requests.create_user_requester import CreateUserRequester
@@ -9,7 +16,10 @@ from src.main.api.specs.response_specs import ResponseSpecs
 
 @pytest.mark.api
 class TestCreateAccount:
+    """Тесты эндпоинта создания счёта."""
+
     def test_create_account(self):
+        """Создаём пользователя от админа, затем счёт от имени пользователя; баланс нового счёта должен быть 0."""
         create_user_request = CreateUserRequest(username="Max44", password="Pas!sw0rd", role="ROLE_USER")
 
         CreateUserRequester(

@@ -1,3 +1,10 @@
+"""
+API-тесты погашения кредита (POST /credit/repay).
+
+Проверяется успешное погашение кредита полной суммой (совпадение creditId и amountDeposited)
+и ошибка 422 при попытке погасить неверную сумму (например 100 вместо полного остатка).
+"""
+
 import pytest
 from src.main.api.models.create_credit_request import CreateCreditRequest
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -12,7 +19,10 @@ from src.main.api.specs.response_specs import ResponseSpecs
 
 @pytest.mark.api
 class TestUserCreditRepay:
+    """Тесты эндпоинта погашения кредита."""
+
     def test_user_credit_repay(self):
+        """Пользователь с ролью ROLE_CREDIT_SECRET: создаём счёт, оформляем кредит, погашаем полной суммой — проверяем creditId и amountDeposited."""
         create_user_request = CreateUserRequest(username="Max88", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
 
         CreateUserRequester(
@@ -44,6 +54,7 @@ class TestUserCreditRepay:
         assert credit_repay_request.amount == response.amountDeposited
 
     def test_user_credit_repay_wrong_amount(self):
+        """Погашение с суммой 100 вместо полного остатка — ожидается 422."""
         create_user_request = CreateUserRequest(username="Max88", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
 
         CreateUserRequester(
