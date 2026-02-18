@@ -1,70 +1,29 @@
-"""
-API-тесты оформления кредита (POST /credit/request).
-
-Проверяется успешная выдача кредита (совпадение accountId, amount, termMonths в ответе)
-и ошибка 400 при сумме 0.
-"""
-
 import pytest
 from src.main.api.models.create_credit_request import CreateCreditRequest
-from src.main.api.models.create_user_request import CreateUserRequest
-from src.main.api.requests.create_account_requester import CreateAccountRequester
-from src.main.api.requests.create_credit_requester import CreateCreditRequester
-from src.main.api.requests.create_user_requester import CreateUserRequester
-from src.main.api.specs.request_specs import RequestSpecs
-from src.main.api.specs.response_specs import ResponseSpecs
 
 
 @pytest.mark.api
 class TestUserCreditRequest:
-    """Тесты эндпоинта оформления кредита."""
+    def test_user_credit_request(self, api_manager, create_user_secret_request, create_account_secret_response,
+                                 get_credit_history):
+        create_credit_request = CreateCreditRequest(accountId=create_account_secret_response.id, amount=5000,
+                                                    termMonths=12)
 
-    def test_user_credit_request(self):
-        """Пользователь ROLE_CREDIT_SECRET создаёт счёт и оформляет кредит 5000 на 12 месяцев — в ответе совпадают accountId, amount, termMonths."""
-        create_user_request = CreateUserRequest(username="Max77", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
-
-        CreateUserRequester(
-            request_spec=RequestSpecs.auth_headers(username="admin", password="123456"),
-            response_spec=ResponseSpecs.code_200()
-        ).post(create_user_request)
-
-        response = CreateAccountRequester(
-            request_spec=RequestSpecs.auth_headers(username="Max77", password="Pas!sw0rd"),
-            response_spec=ResponseSpecs.code_201()
-        ).post()
-
-        account_id = response.id
-
-        create_credit_request = CreateCreditRequest(accountId=account_id, amount=5000, termMonths=12)
-
-        response = CreateCreditRequester(
-            request_spec=RequestSpecs.auth_headers(username="Max77", password="Pas!sw0rd"),
-            response_spec=ResponseSpecs.code_201()
-        ).post(create_credit_request)
+        response = api_manager.user_steps.create_credit(create_user_secret_request, create_credit_request)
 
         assert create_credit_request.accountId == response.id
         assert create_credit_request.amount == response.amount
         assert create_credit_request.termMonths == response.termMonths
 
-    def test_user_credit_request_with_empty_amount(self):
-        """Запрос кредита с amount=0 — ожидается 400."""
-        create_user_request = CreateUserRequest(username="Max77", password="Pas!sw0rd", role="ROLE_CREDIT_SECRET")
+        history = get_credit_history()
+        credit = next((c for c in history.credits if c.creditId == response.creditId), None)
+        assert credit is not None
+        assert credit.amount == response.amount
+        assert credit.termMonths == response.termMonths
 
-        CreateUserRequester(
-            request_spec=RequestSpecs.auth_headers(username="admin", password="123456"),
-            response_spec=ResponseSpecs.code_200()
-        ).post(create_user_request)
+    def test_user_credit_request_with_empty_amount(self, api_manager, create_user_secret_request,
+                                                   create_account_secret_response):
+        create_credit_request = CreateCreditRequest(accountId=create_account_secret_response.id, amount=0,
+                                                    termMonths=12)
 
-        response = CreateAccountRequester(
-            request_spec=RequestSpecs.auth_headers(username="Max77", password="Pas!sw0rd"),
-            response_spec=ResponseSpecs.code_201()
-        ).post()
-
-        account_id = response.id
-
-        create_credit_request = CreateCreditRequest(accountId=account_id, amount=0, termMonths=12)
-
-        CreateCreditRequester(
-            request_spec=RequestSpecs.auth_headers(username="Max77", password="Pas!sw0rd"),
-            response_spec=ResponseSpecs.code_400()
-        ).post(create_credit_request)
+        api_manager.user_steps.create_credit_invalid(create_user_secret_request, create_credit_request)
