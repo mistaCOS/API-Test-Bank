@@ -1,35 +1,14 @@
-"""
-API-тесты создания счёта (account).
-
-Сценарий: под админом создаётся пользователь, затем под этим пользователем создаётся счёт.
-Проверяется, что баланс нового счёта равен 0.
-"""
-
 import pytest
-from src.main.api.models.create_user_request import CreateUserRequest
-from src.main.api.requests.create_user_requester import CreateUserRequester
-from src.main.api.requests.create_account_requester import CreateAccountRequester
-
-from src.main.api.specs.request_specs import RequestSpecs
-from src.main.api.specs.response_specs import ResponseSpecs
 
 
 @pytest.mark.api
 class TestCreateAccount:
-    """Тесты эндпоинта создания счёта."""
-
-    def test_create_account(self):
-        """Создаём пользователя от админа, затем счёт от имени пользователя; баланс нового счёта должен быть 0."""
-        create_user_request = CreateUserRequest(username="Max44", password="Pas!sw0rd", role="ROLE_USER")
-
-        CreateUserRequester(
-            request_spec=RequestSpecs.auth_headers(username="admin", password="123456"),
-            response_spec=ResponseSpecs.code_200()
-        ).post(create_user_request)
-
-        response = CreateAccountRequester(
-            request_spec=RequestSpecs.auth_headers(username="Max44", password="Pas!sw0rd"),
-            response_spec=ResponseSpecs.code_201()
-        ).post()
+    def test_create_account(self, api_manager, create_user_request, get_transactions):
+        response = api_manager.user_steps.create_account(create_user_request)
 
         assert response.balance == 0
+
+        transactions_response = api_manager.user_steps.get_transactions(create_user_request,  response.id)
+        assert response.id == transactions_response.id
+        assert response.number == transactions_response.number
+        assert transactions_response.balance == 0
