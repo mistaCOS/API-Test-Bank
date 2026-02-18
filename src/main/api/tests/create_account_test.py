@@ -8,7 +8,7 @@ class TestCreateAccount:
 
         assert response.balance == 0
 
-        transactions_response = get_transactions(response.id)
+        transactions_response = api_manager.user_steps.get_transactions(create_user_request,  response.id)
         assert response.id == transactions_response.id
         assert response.number == transactions_response.number
         assert transactions_response.balance == 0

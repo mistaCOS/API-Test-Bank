@@ -12,7 +12,7 @@ class TestUserDeposit:
         assert create_deposit_request.accountId == response.id
         assert create_deposit_request.amount == response.balance
 
-        transactions_response = get_transactions(response.id)
+        transactions_response = api_manager.user_steps.get_transactions(create_user_request,  response.id)
         assert transactions_response.id == response.id
         assert transactions_response.balance == response.balance
 

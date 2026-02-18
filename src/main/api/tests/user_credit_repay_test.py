@@ -15,7 +15,7 @@ class TestUserCreditRepay:
         assert credit_repay_request.creditId == response.creditId
         assert credit_repay_request.amount == response.amountDeposited
 
-        history = get_credit_history()
+        history = api_manager.user_steps.get_credit_history(create_user_secret_request)
         credit = next((c for c in history.credits if c.creditId == response.creditId), None)
         assert credit is not None
         assert credit.balance == 0

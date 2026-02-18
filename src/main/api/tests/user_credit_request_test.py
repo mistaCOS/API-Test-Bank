@@ -15,7 +15,7 @@ class TestUserCreditRequest:
         assert create_credit_request.amount == response.amount
         assert create_credit_request.termMonths == response.termMonths
 
-        history = get_credit_history()
+        history = api_manager.user_steps.get_credit_history(create_user_secret_request)
         credit = next((c for c in history.credits if c.creditId == response.creditId), None)
         assert credit is not None
         assert credit.amount == response.amount

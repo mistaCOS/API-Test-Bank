@@ -1,6 +1,7 @@
 import pytest
 from src.main.api.generators.model_generator import RandomModelGenerator
 from src.main.api.models.create_user_request import CreateUserRequest
+from src.main.api.models.login_user_request import LoginUserRequest
 
 
 @pytest.mark.api
@@ -15,7 +16,10 @@ class TestCreateUser:
         assert create_user_request.username == response.username
         assert create_user_request.role == response.role
 
-        assert any(u.username == create_user_request.username for u in get_users().root)
+        users = api_manager.admin_steps.get_user(
+            LoginUserRequest(username="admin", password="123456")
+        )
+        assert any(u.username == create_user_request.username for u in users.root)
 
     @pytest.mark.parametrize(
         "username,password",
